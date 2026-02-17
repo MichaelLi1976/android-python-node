@@ -1,0 +1,16 @@
+name: Build APK
+on: [push] # 每次你改代碼上傳，它就會自動重編 APK
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Buildozer Action
+        uses: ArtemSerebriennikov/buildozer-action@v1
+        with:
+          save_cache: true
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: python-api-node
+          path: bin/*.apk
