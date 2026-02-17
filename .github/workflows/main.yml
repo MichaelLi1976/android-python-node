@@ -9,20 +9,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 獲取你的程式碼 (升級到 v4)
+      # 1. 檢查程式碼
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. 執行打包動作 (修正大小寫為 ArtemSerebriennikov)
+      # 2. 執行打包 (注意這裡 A 和 S 是大寫)
       - name: Buildozer Action
         uses: ArtemSerebriennikov/buildozer-action@v1
         with:
           save_cache: true
 
-      # 3. 上傳生成的 APK (升級到 v4 以符合 GitHub 最新規範)
+      # 3. 上傳 APK (使用最新的 v4 版本)
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: python-api-node
           path: bin/*.apk
-
