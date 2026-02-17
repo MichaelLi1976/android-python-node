@@ -3,24 +3,33 @@ name: Build APK
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # 使用穩定的 Ubuntu 22.04
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Build with Buildozer
-        uses: digreatbrian/buildozer-action@v2
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
         with:
-          python-version: 3.8
-          buildozer-cmd: buildozer -v android debug
+          workdir: .
+          buildozer_version: stable
+        env:
+          # 設置 Android 架構
+          APP_ANDROID_ARCH: arm64-v8a
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
+        if: success()
         with:
-          name: python-api-node
-          path: ./bin/*.apk
+          name: python-api-node-${{ github.sha }}
+          path: ${{ steps.buildozer.outputs.filename }}
+          retention-days: 30
+
 
