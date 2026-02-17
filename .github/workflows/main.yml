@@ -1,4 +1,4 @@
-name: Build APK with Buildozer
+name: Build APK
 
 on:
   push:
@@ -36,46 +36,35 @@ jobs:
             libavcodec-dev \
             zlib1g-dev \
             openjdk-17-jdk \
-            unzip \
-            autoconf \
-            libtool \
-            pkg-config \
-            libncurses5 \
-            libncursesw5
+            unzip
 
-      - name: Install Buildozer and dependencies
+      - name: Install Buildozer
         run: |
           pip install --upgrade pip
           pip install --upgrade buildozer
           pip install --upgrade cython==0.29.33
 
-      - name: Build APK with Buildozer
+      - name: Build APK
         run: |
-          yes | buildozer -v android debug || buildozer -v android debug
+          yes | buildozer -v android debug 2>&1 | tee build.log || true
+          
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build.log
 
-      - name: List build output
+      - name: Check for APK
         if: always()
         run: |
-          echo "=== Current directory ==="
-          ls -la
-          echo "=== Bin directory ==="
-          ls -la bin/ || echo "No bin directory"
-          echo "=== Finding APK files ==="
+          echo "=== Searching for APK ==="
           find . -name "*.apk" -type f
+          ls -la bin/ || echo "No bin directory"
 
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: python-api-node-apk
           path: bin/*.apk
-          retention-days: 30
-
-      - name: Upload build logs
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: buildozer-logs
-          path: .buildozer/android/platform/build-*/build.log
-
-
