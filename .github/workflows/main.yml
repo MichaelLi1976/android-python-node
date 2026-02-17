@@ -13,10 +13,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build with Buildozer
-        uses: digreatbrian/buildozer-action@latest
+        uses: digreatbrian/buildozer-action@v2
+        with:
+          python-version: 3.8
+          buildozer-cmd: buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: python-api-node
-          path: .buildozer/android/platform/build-*/outputs/apk/debug/*.apk
+          path: ./bin/*.apk
+
