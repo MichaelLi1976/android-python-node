@@ -1,36 +1,73 @@
-name: Build APK
+name: Build APK with Buildozer
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build with Buildozer
-        run: |
-          docker run --rm \
-            -v "$PWD":/home/user/hostcwd \
-            -w /home/user/hostcwd \
-            kivy/buildozer:latest \
-            buildozer -v android debug
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
-      - name: List generated files
+      - name: Install system dependencies
         run: |
-          ls -la bin/
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-pip \
+            build-essential \
+            git \
+            ffmpeg \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            zlib1g-dev \
+            openjdk-17-jdk \
+            unzip \
+            autoconf \
+            libtool \
+            pkg-config \
+            libncurses5 \
+            libncursesw5
 
-      - name: Upload APK
+      - name: Install Buildozer and dependencies
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade buildozer
+          pip install --upgrade cython==0.29.33
+
+      - name: Build APK with Buildozer
+        run: |
+          yes | buildozer -v android debug || buildozer -v android debug
+
+      - name: List build output
+        if: always()
+        run: |
+          echo "=== Current directory ==="
+          ls -la
+          echo "=== Bin directory ==="
+          ls -la bin/ || echo "No bin directory"
+          echo "=== Finding APK files ==="
+          find . -name "*.apk" -type f
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: python-api-node-${{ github.sha }}
+          name: python-api-node-apk
           path: bin/*.apk
           retention-days: 30
 
@@ -38,7 +75,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: build-logs
-          path: .buildozer/
+          name: buildozer-logs
+          path: .buildozer/android/platform/build-*/build.log
 
 
